@@ -15,7 +15,7 @@ public class ForecastsController : ControllerBase
     IForecastService _forecastService;
     public ForecastsController(
         IConfiguration configuration, 
-        DbForecastService forecastService, 
+        LocalForecastService forecastService, 
         OpenMeteoCommunicationService communicationService)
     {
         _forecastService = forecastService;

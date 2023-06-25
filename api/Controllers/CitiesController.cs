@@ -11,7 +11,7 @@ public class CitiesContoller : ControllerBase
 {
     IForecastService _forecastService;
     public CitiesContoller(
-        DbForecastService forecastService)
+        LocalForecastService forecastService)
     {
         _forecastService = forecastService;
     }

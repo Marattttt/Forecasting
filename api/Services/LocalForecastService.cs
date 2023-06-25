@@ -4,11 +4,11 @@ using WeatherForecast.Models;
 
 namespace WeatherForecast.Services;
 
-public class DbForecastService : IForecastService
+public class LocalForecastService : IForecastService
 {
     WeatherForecastContext _context;
 
-    public DbForecastService(WeatherForecastContext context) 
+    public LocalForecastService(WeatherForecastContext context) 
     {
         _context = context;
     }

@@ -7,5 +7,5 @@ namespace WeatherForecast.Json;
 public class Root
 {
     [JsonPropertyName("hourly")]
-    public Forecast Hourly { get; set; } = null!;
+    public Forecast Forecast { get; set; } = null!;
 }

@@ -61,6 +61,7 @@ public class OpenMeteoCommunicationService : ICommnunicationService
         {
             var response = await client.GetAsync(finalUrl);
 
+            Console.WriteLine("Requesting url: ");
             Console.WriteLine(finalUrl);
             
             JsonDocument jsonDocument = JsonDocument.Parse(
@@ -70,14 +71,10 @@ public class OpenMeteoCommunicationService : ICommnunicationService
 
             var root = rootElement.Deserialize<Root>();
             var data = new Forecast();
-            Console.WriteLine(
-                await response.Content.ReadAsStringAsync()
-            );
-            Console.WriteLine("\n\n\n");
 
             try 
             {
-                data = root!.Hourly;
+                data = root!.Forecast;
             }
             catch (NullReferenceException e)
             {
