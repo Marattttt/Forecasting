@@ -11,6 +11,10 @@ public class LocalForecastFixture
     private readonly DbContextOptions<WeatherForecastContext> _dbOptions;
     private static readonly object _lock = new();
     private static bool _isDbInitialized = false;
+    
+    public static readonly City city1 = new City("Peru", -12.043, -77.028);
+    public static readonly City city2 = new City("Bishkek", 42.882, 74.582);
+    public static readonly DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
     public LocalForecastFixture()
     {
@@ -27,9 +31,8 @@ public class LocalForecastFixture
         
     }
 
-    public WeatherForecastContext CreateContext()
-        => new WeatherForecastContext(
-            _dbOptions);
+    public WeatherForecastContext CreateContext() =>
+        new WeatherForecastContext(_dbOptions);
 
     private void _dbInit()
     {
@@ -40,10 +43,6 @@ public class LocalForecastFixture
                 return;
             }
 
-            City peru = new City("Peru", -12.04318, -77.02824);
-            City bishkek = new City("Bishkek", 42.882, 74.582);
-
-            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
             using (var context = new WeatherForecastContext(_dbOptions))
             {
@@ -52,7 +51,7 @@ public class LocalForecastFixture
 
                 context.AddRange(
                     new Forecast() {
-                        City = peru,
+                        City = city1,
                         ForecastDate = today,
                         Temperature = randomForecastData(),
                         WindSpeed = randomForecastData(),
@@ -61,7 +60,7 @@ public class LocalForecastFixture
                         CloudCover = randomForecastData()
                     },
                     new Forecast() {
-                        City = bishkek,
+                        City = city2,
                         ForecastDate = today,
                         Temperature = randomForecastData(),
                         WindSpeed = randomForecastData(),
