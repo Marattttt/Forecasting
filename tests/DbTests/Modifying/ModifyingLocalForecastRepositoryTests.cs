@@ -15,6 +15,27 @@ public class ModifyingLocalForecastRepositoryTests : IClassFixture<LocalForecast
         _fixture = fixture;
     }
 
+    [Theory]
+    [InlineData("City", 32.3, 41.942)]
+    [InlineData("Город", -1.2, 0)]
+    public async Task Adds_New_City(string name, double latitude, double lontitude)
+    {
+        var newCity = new City(name, latitude, lontitude);
+        using (var context = _fixture.CreateContext())
+        {
+            context.Database.BeginTransaction();
+
+            var repository = new LocalForecastRepository(context);
+            await repository.CreateCityAsync(name, latitude, lontitude);
+
+            City? addedCity = context.Cities.First(c => c.Name == newCity.Name);
+
+            Assert.NotNull(addedCity);
+            
+            Assert.Equal(newCity, addedCity);
+        }
+    }
+
     [Fact]
     public async void Adds_New_Forecast()
     {
@@ -29,15 +50,15 @@ public class ModifyingLocalForecastRepositoryTests : IClassFixture<LocalForecast
 
             var repository = new LocalForecastRepository(context);
 
-            // forecast.City = (await service.GetCityAsync(forecast.City.Name))!;
-
             await repository.UpdateOrCreateForecast(forecast);
 
-            Assert.Contains(
-                context.Forecasts, 
-                f => f.ForecastDate == forecast.ForecastDate);
+            Forecast? addedForecast = context.Forecasts.First(
+                f => f.City == forecast.City && f.ForecastDate == forecast.ForecastDate
+            );
 
-            // context.ChangeTracker.Clear();
+            Assert.NotNull(addedForecast);
+
+            Assert.Equal(forecast, addedForecast);
         }
     }
 
@@ -55,9 +76,6 @@ public class ModifyingLocalForecastRepositoryTests : IClassFixture<LocalForecast
 
             var repository = new LocalForecastRepository(context);
 
-            // newForecast.City = context.Cities.First(c => c.Name == newForecast.City.Name);
-            // newForecast.CityId = newForecast.City.CityId;
-
             var oldTemperature = new double[24];
             var oldForecast = await repository.GetForecastAsync(newForecast.City, _fixture.today);
             oldForecast!.Temperature!.CopyTo(oldTemperature, 0);
@@ -71,8 +89,23 @@ public class ModifyingLocalForecastRepositoryTests : IClassFixture<LocalForecast
                 f => f.ForecastDate == newForecast.ForecastDate);
 
             Assert.NotSame(oldTemperature, updatedForecast!.Temperature);
+        }
+    }
 
-            // context.ChangeTracker.Clear();
+    [Fact]
+    public async Task Deletes_Forecast()
+    {
+        using (var context = _fixture.CreateContext())
+        {
+            context.Database.BeginTransaction();
+            var repository = new LocalForecastRepository(context);
+
+            var forecast = context.Forecasts.First(f => f.City == _fixture.city1);
+            await repository.DeleteForecastAsync(forecast);
+
+            Assert.DoesNotContain(
+                context.Forecasts, 
+                f => f.City == _fixture.city1 && f.ForecastDate == _fixture.today);
         }
     }
 }
