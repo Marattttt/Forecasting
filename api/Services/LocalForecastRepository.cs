@@ -4,11 +4,11 @@ using WeatherForecast.Models;
 
 namespace WeatherForecast.Services;
 
-public class LocalForecastService : IForecastService
+public class LocalForecastRepository : IForecastRepository
 {
     WeatherForecastContext _context;
 
-    public LocalForecastService(WeatherForecastContext context) 
+    public LocalForecastRepository(WeatherForecastContext context) 
     {
         _context = context;
     }
@@ -16,16 +16,15 @@ public class LocalForecastService : IForecastService
     public async Task<City?> GetCityAsync(string name) 
     {
         City? city = await _context.Cities
-            .Where(c => c.Name == name)
             .OrderBy(c => c.Name)
+            .Where(c => c.Name == name)
             .FirstOrDefaultAsync();
         return city;
     }
     public async Task<Forecast?> GetForecastAsync(City city, DateOnly date)
     {
         Forecast? forecast = await _context.Forecasts
-            .Where(f => f.CityId == city.CityId && f.ForecastDate == date)
-            .FirstOrDefaultAsync();
+            .FindAsync(city.CityId, date);
         return forecast;
     }
 
@@ -56,20 +55,11 @@ public class LocalForecastService : IForecastService
 
     public async Task UpdateOrCreateForecast(Forecast newForecast)
     {
-        City? city = await GetCityAsync(newForecast.City.Name);
-
-        if (city is null)
-        {
-            throw new ArgumentNullException("City not found");
-        }
-
-        newForecast.CityId = city.CityId;
         var existingForecast = await GetForecastAsync(
-            city, newForecast.ForecastDate);
+            newForecast.City, newForecast.ForecastDate);
 
         if (existingForecast != null)
         {
-            Console.WriteLine("Entity already exists");
             existingForecast.CloudCover = newForecast.CloudCover;
             existingForecast.Rain = newForecast.Rain;
             existingForecast.Snowfall = newForecast.Snowfall;
@@ -79,6 +69,8 @@ public class LocalForecastService : IForecastService
         }
         else
         {
+            _context.Entry(newForecast.City).State = EntityState.Detached;
+            _context.Entry(newForecast).State = EntityState.Added;
             await _context.Forecasts.AddAsync(newForecast);
         }
 

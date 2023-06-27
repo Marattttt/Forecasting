@@ -2,7 +2,7 @@ using WeatherForecast.Models;
 
 namespace WeatherForecast.Services;
 
-public interface IForecastService
+public interface IForecastRepository
 {
     public Task UpdateOrCreateForecast(Forecast newForecast);
     public Task<City?> GetCityAsync(string name);

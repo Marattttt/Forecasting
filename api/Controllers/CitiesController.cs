@@ -9,11 +9,11 @@ namespace WeatherForecast.Controllers;
 [Route("cities")]
 public class CitiesContoller : ControllerBase
 {
-    IForecastService _forecastService;
+    IForecastRepository _forecastRepository;
     public CitiesContoller(
-        LocalForecastService forecastService)
+        LocalForecastRepository forecastRepository)
     {
-        _forecastService = forecastService;
+        _forecastRepository = forecastRepository;
     }
 
     // /cities/new
@@ -25,13 +25,13 @@ public class CitiesContoller : ControllerBase
         [FromForm] double longtitude,
         [FromForm] bool updateIfExists = false)
     {
-        City? old = await _forecastService.GetCityAsync(name);
+        City? old = await _forecastRepository.GetCityAsync(name);
         if (old is not null) 
         {
             return BadRequest("City is present in database");
         }
 
-        await _forecastService.CreateCityAsync(name, latitude, longtitude, updateIfExists);
+        await _forecastRepository.CreateCityAsync(name, latitude, longtitude, updateIfExists);
 
         return Ok();
     }

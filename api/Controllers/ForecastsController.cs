@@ -12,13 +12,13 @@ public class ForecastsController : ControllerBase
     readonly TimeSpan maxSupportedHistory = new TimeSpan(200,0,0,0); 
     readonly TimeSpan maxSupportedFuture = new TimeSpan(-15,0,0,0);
     ICommnunicationService _communicationService;
-    IForecastService _forecastService;
+    IForecastRepository _forecastRepository;
     public ForecastsController(
         IConfiguration configuration, 
-        LocalForecastService forecastService, 
+        LocalForecastRepository forecastRepository, 
         OpenMeteoCommunicationService communicationService)
     {
-        _forecastService = forecastService;
+        _forecastRepository = forecastRepository;
         _communicationService = communicationService;
     }
 
@@ -37,7 +37,7 @@ public class ForecastsController : ControllerBase
         [FromForm] bool includeSnowFall = false,
         [FromForm] bool includeCloudCover = false)
     {
-        City? city = await _forecastService.GetCityAsync(cityName);
+        City? city = await _forecastRepository.GetCityAsync(cityName);
         var queryParams = new ForecastQueryParams() {
             temperature = includeTemperature,
             windSpeed = includeWindSpeed,
@@ -89,7 +89,7 @@ public class ForecastsController : ControllerBase
 
         foreach (Forecast forecast in forecasts) 
         {
-            await _forecastService.UpdateOrCreateForecast(forecast);
+            await _forecastRepository.UpdateOrCreateForecast(forecast);
         }
 
         return Ok();

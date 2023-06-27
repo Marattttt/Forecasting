@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using WeatherForecast.Data;
 using WeatherForecast.Models;
 
+using tests.Utils;
+
 namespace tests.Fixtures;
 
 public class LocalForecastFixture
@@ -11,10 +13,10 @@ public class LocalForecastFixture
     private readonly DbContextOptions<WeatherForecastContext> _dbOptions;
     private static readonly object _lock = new();
     private static bool _isDbInitialized = false;
-    
-    public static readonly City city1 = new City("Peru", -12.043, -77.028);
-    public static readonly City city2 = new City("Bishkek", 42.882, 74.582);
-    public static readonly DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+    public readonly City city1 = new City("Peru", -12.043, -77.028);
+    public readonly City city2 = new City("Bishkek", 42.882, 74.582);
+    public readonly DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
     public LocalForecastFixture()
     {
@@ -26,15 +28,21 @@ public class LocalForecastFixture
 
         _dbOptions = new DbContextOptionsBuilder<WeatherForecastContext>()
             .UseNpgsql(_connectionString)
+            .EnableSensitiveDataLogging()
             .Options;
-        _dbInit();
-        
+            
+        dbInit();
     }
 
-    public WeatherForecastContext CreateContext() =>
-        new WeatherForecastContext(_dbOptions);
+    public WeatherForecastContext CreateContext()
+    {
+        var context = new WeatherForecastContext(_dbOptions);
+        city1.CityId = context.Cities.First(c => c.Name == city1.Name).CityId;
+        city2.CityId = context.Cities.First(c => c.Name == city2.Name).CityId;
+        return context;
+    }
 
-    private void _dbInit()
+    private void dbInit()
     {
         lock (_lock)
         {
@@ -43,46 +51,19 @@ public class LocalForecastFixture
                 return;
             }
 
-
             using (var context = new WeatherForecastContext(_dbOptions))
             {
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
 
                 context.AddRange(
-                    new Forecast() {
-                        City = city1,
-                        ForecastDate = today,
-                        Temperature = randomForecastData(),
-                        WindSpeed = randomForecastData(),
-                        Rain = randomForecastData(),
-                        Snowfall = randomForecastData(),
-                        CloudCover = randomForecastData()
-                    },
-                    new Forecast() {
-                        City = city2,
-                        ForecastDate = today,
-                        Temperature = randomForecastData(),
-                        WindSpeed = randomForecastData(),
-                        Rain = randomForecastData(),
-                        Snowfall = randomForecastData(),
-                        CloudCover = randomForecastData()
-                    }
+                    DataGenerator.GetRandomForecast(city1, today),
+                    DataGenerator.GetRandomForecast(city2, today)
                 );
-                
+
                 context.SaveChanges();
             }
             _isDbInitialized = true;
         }
-    }
-
-    // Returns an array of doubles between -20 and 20
-    private double[] randomForecastData() 
-    {
-        var rand = new Random();
-        double[] res = Enumerable.Range(1, 24)
-            .Select(_ => rand.NextDouble() * rand.Next(-20, 20))
-            .ToArray();
-        return res;
     }
 }

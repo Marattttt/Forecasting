@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<LocalForecastService>();
+builder.Services.AddScoped<LocalForecastRepository>();
 builder.Services.AddScoped<OpenMeteoCommunicationService>();
 
 builder.Services.AddDbContext<WeatherForecastContext>(options => {
